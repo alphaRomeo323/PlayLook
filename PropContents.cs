@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Reactive.Bindings;
+﻿using Reactive.Bindings;
 using System.Reactive.Linq;
-using System.Reactive.Joins;
 using Windows.Media.Control;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace PlayLook
 {
+    /// <summary>
+    /// プロパティの内容を管理するクラス
+    /// </summary>
     public class PropContents
     {
+        
         public ReactiveProperty<string> Title { get; private set; }
         public ReactiveProperty<string> Artist { get; private set; }
         public ReactiveProperty<string> Album { get; private set; }
         public ReactiveProperty<GlobalSystemMediaTransportControlsSessionPlaybackStatus> Status { get; private set; }
         public ReactiveProperty<string> Current { get; }
         public ReactiveProperty<string> Icon { get; }
-
+        private string defaltString = "No media playing";
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public PropContents()
         {
             Title = new ReactiveProperty<string>("");
@@ -28,8 +28,17 @@ namespace PlayLook
             Status = new ReactiveProperty<GlobalSystemMediaTransportControlsSessionPlaybackStatus>(GlobalSystemMediaTransportControlsSessionPlaybackStatus.Closed);
             Current = new ReactiveProperty<string>("No media playing");
             Icon = new ReactiveProperty<string>("VolumeOff");
-            Current = Title.CombineLatest(Artist, Album, Status, (title, artist, album, status) => GenerateCurrentStatus(title, artist, album, status)).ToReactiveProperty();
+            Current = Title.CombineLatest(Artist, Album, Status, GenerateCurrentStatus).ToReactiveProperty();
         }
+
+        /// <summary>
+        /// PropViewに表示する情報を更新する
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="artist"></param>
+        /// <param name="album"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
         private string GenerateCurrentStatus(string title, string artist, string album, GlobalSystemMediaTransportControlsSessionPlaybackStatus status)
         {
             switch (status)
@@ -45,14 +54,22 @@ namespace PlayLook
                     return SetCurrentStatus(title, artist, album);
                 default:
                     Icon.Value = "VolumeOff";
-                    return "No media playing";
+                    return defaltString;
 
             }
         }
+
+        /// <summary>
+        /// PropViewに表示するテキストを生成する
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="artist"></param>
+        /// <param name="album"></param>
+        /// <returns></returns>
         private string SetCurrentStatus(string title, string artist, string album)
         {
             string currentStatus = "";
-            if (artist != "Unknown")
+            if ( !( artist == "Unknown" || Settings.Default.OnlyTitle ) )
             {
                 currentStatus += $"{artist} - ";
             }
@@ -60,9 +77,9 @@ namespace PlayLook
             {
                 currentStatus += $"{title}";
             }
-            else { return "No media playing"; }
-            if (album != "")
-            {
+            else { return defaltString; }
+            if ( !( album == "" || Settings.Default.OnlyTitle) )
+                {
                 currentStatus += $" (from {album})";
             }
             return currentStatus;

@@ -11,8 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="icon.ico" />
-    <None Remove="Playlook.ico" />
+    <Compile Remove="resources\**" />
+    <EmbeddedResource Remove="resources\**" />
+    <None Remove="resources\**" />
+    <Page Remove="resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="MainWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="icon.ico" />
+    <Content Include="icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -29,9 +37,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="icon.ico" />
-    <Resource Include="MainWindow.xaml" />
-    <Resource Include="Playlook.ico" />
+    <Resource Include="Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

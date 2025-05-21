@@ -1,34 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Media.Control;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+﻿using Windows.Media.Control;
 
 namespace PlayLook
 {
+    /// <summary>
+    /// GlobalSystemMediaTransportControlsSessionを保持するクラス
+    /// </summary>
     class SMTCSessionManager
     {
         private GlobalSystemMediaTransportControlsSession? session;
         private GlobalSystemMediaTransportControlsSessionManager manager = GlobalSystemMediaTransportControlsSessionManager.RequestAsync().GetAwaiter().GetResult();
 
         public PropContents propContents;
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public SMTCSessionManager()
         {
             propContents = new PropContents();
             session = manager.GetCurrentSession();
             if (session != null)
             {
-                getMediaPropaties();
-                getMediaStatus();
+                getMediaPropaties(session);
+                getMediaStatus(session);
                 session.PlaybackInfoChanged += (s, e) =>
                 {
-                    getMediaStatus();
+                    getMediaStatus(s);
                 };
                 session.MediaPropertiesChanged += (s, e) =>
                 {
-                    getMediaPropaties();
+                    getMediaPropaties(s);
                 };
             }
             manager.CurrentSessionChanged += (s, e) =>
@@ -36,28 +36,37 @@ namespace PlayLook
                 session = manager.GetCurrentSession();
                 if (session != null)
                 {
-                    getMediaPropaties();
-                    getMediaStatus();
+                    getMediaPropaties(session);
+                    getMediaStatus(session);
                     session.PlaybackInfoChanged += (s, e) =>
                     {
-                        getMediaStatus();
+                        getMediaStatus(s);
 
                     };
                     session.MediaPropertiesChanged += (s, e) =>
                     {
-                        getMediaPropaties();
+                        getMediaPropaties(s);
                     };
                 }
             };
         }
-        private void getMediaPropaties()
+
+        /// <summary>
+        /// メディアのプロパティを取得する
+        /// </summary>
+        /// <param name="session">イベントから渡されるSession</param>
+        private void getMediaPropaties(GlobalSystemMediaTransportControlsSession session)
         {
             GlobalSystemMediaTransportControlsSessionMediaProperties prop;
             try
             {
                 prop = session.TryGetMediaPropertiesAsync().GetAwaiter().GetResult();
                 propContents.Title.Value = prop.Title;
-                if (prop.Artist != null)
+                if (prop.Artist == null || prop.Artist == "")
+                {
+                    propContents.Artist.Value = "Unknown";
+                }
+                else
                 {
                     propContents.Artist.Value = prop.Artist;
                 }
@@ -76,7 +85,11 @@ namespace PlayLook
 
         }
 
-        private void getMediaStatus()
+        /// <summary>
+        /// メディアのステータスを取得する
+        /// </summary>
+        /// <param name="session">イベントから渡されるSession</param>
+        private void getMediaStatus(GlobalSystemMediaTransportControlsSession session)
         {
             try
             {
@@ -101,8 +114,15 @@ namespace PlayLook
 
         }
 
+        /// <summary>
+        /// 再生・一時停止を試行する
+        /// </summary>
         public async void TryControl()
         {
+            if(session == null)
+            {
+                return;
+            }
             switch (propContents.Status.Value)
             {
                 case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:

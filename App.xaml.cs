@@ -1,7 +1,5 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Security.Cryptography.X509Certificates;
-using System.Windows;
+﻿using System.Windows;
+using MaterialDesignThemes.Wpf;
 
 namespace PlayLook
 {
@@ -11,15 +9,33 @@ namespace PlayLook
     public partial class App : System.Windows.Application
     {
         private PropView prop;
-
+        private SettingWindow? wnd;
+        /// <summary>
+        /// アプリケーションのエントリポイント。
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            
+            // テーマの初期設定を行う
+            var paletteHelper = new PaletteHelper();
+            var theme = paletteHelper.GetTheme();
+            if (Settings.Default.BaseTheme =="Dark")
+            {
+                theme.SetBaseTheme(BaseTheme.Dark);
+            }
+            else
+            {
+                theme.SetBaseTheme(BaseTheme.Light);
+            }
+            paletteHelper.SetTheme(theme);
 
-            var icon = GetResourceStream(new Uri("Playlook.ico", UriKind.Relative)).Stream;
+            // タスクトレイにアイコンを表示
+            var icon = GetContentStream(new Uri("icon.ico", UriKind.Relative)).Stream;
             var menu = new System.Windows.Forms.ContextMenuStrip();
-            menu.Items.Add("設定", null, Main_Click);
-            menu.Items.Add("終了", null, Exit_Click);
+            menu.Items.Add("設定", null, onClick: Main_Click);
+            menu.Items.Add("終了", null, onClick: Exit_Click);
             var notifyIcon = new System.Windows.Forms.NotifyIcon
             {
                 Visible = true,
@@ -29,13 +45,17 @@ namespace PlayLook
             };
             notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(NotifyIcon_Click);
 
+            // プロパティウィンドウの初期化
             prop = new PropView();
-            var dispWidth = SystemParameters.PrimaryScreenWidth;
-            var appWidth = prop.Width;
-            var dispHeight = SystemParameters.PrimaryScreenHeight;
-            var appHeight = prop.Height;
-            prop.Left = dispWidth - appWidth;
-            prop.Top = dispHeight - appHeight - 40;
+            if (Settings.Default.FirstStartup)
+            {
+                Settings.Default.FirstStartup = false;
+                Settings.Default.WindowLeft = SystemParameters.PrimaryScreenWidth - prop.Width;
+                Settings.Default.WindowTop = SystemParameters.PrimaryScreenHeight - prop.Height - 40;
+                Settings.Default.Save();
+            }
+            prop.Left = Settings.Default.WindowLeft;
+            prop.Top = Settings.Default.WindowTop;
             prop.Show();
             prop.Closing += (s, args) =>
             {
@@ -44,25 +64,48 @@ namespace PlayLook
             };
         }
 
+        /// <summary>
+        /// タスクトレイアイコンのクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void NotifyIcon_Click(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                
                 prop.Show();
             }
         }
 
+        /// <summary>
+        /// アプリケーションを終了するためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Exit_Click(object sender, EventArgs e)
         {
+            Settings.Default.WindowLeft = prop.Left;
+            Settings.Default.WindowTop = prop.Top;
+            Settings.Default.Save();
             Shutdown();
         }
 
+        /// <summary>
+        /// 設定ウィンドウを表示するためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Main_Click(object sender, EventArgs e)
         {
-            var wnd = new MainWindow();
+            if (wnd == null)
+            {
+                wnd = new SettingWindow();
+                wnd.Closed += (s, args) =>
+                {
+                    wnd = null;
+                };
+            }
             wnd.Show();
         }
     }
-
 }

@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using static System.Windows.Forms.LinkLabel;
 
 namespace PlayLook
 {
@@ -22,48 +11,78 @@ namespace PlayLook
     /// </summary>
     public partial class PropView : Window
     {
-        private SMTCSessionManager sessionManager;
-        private Storyboard storyBoard;
+        private SMTCSessionManager sessionManager; // SMTCセッションを管理するクラス
+        private HTTPSessionManager httpSessionManager; // HTTPセッションを管理するクラス
+        private Storyboard storyBoard; // アニメーションを管理するクラス
+
+        private const double TEXT_BLOCK_WIDTH = 480; // テキストブロックの幅(px)
+        private const int ANIMATION_BASE_TIME = 10; // アニメーションの基本時間(s)
+        private const int ANIMATION_SPEED = 20; // アニメーション速度(px/s)
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public PropView()
         {
             InitializeComponent();
             sessionManager = new SMTCSessionManager();
-//storyBoard = (Storyboard?)FindResource("OverFlowTitleAnimation");
+            httpSessionManager = new HTTPSessionManager(sessionManager.propContents);
             this.DataContext = sessionManager.propContents;
+            
         }
+        /// <summary>
+        /// ウィンドウをドラッグするためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
         }
-        
+
+        /// <summary>
+        /// ウィンドウを閉じるためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Collapse_Click(object sender, RoutedEventArgs e)
         {
             this.Hide();
         }
 
+        /// <summary>
+        /// SMTCを通じて再生・一時停止を行うためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Control_Click(object sender, RoutedEventArgs e)
         {
             sessionManager.TryControl();
         }
 
+        /// <summary>
+        /// テキストの長さに応じてアニメーションを行うためのイベントハンドラ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
         private async void TargetUpdatedHandler(object sender, DataTransferEventArgs args)
         {
-            await Task.Delay(1000);
+            await Task.Delay(200);
             if (storyBoard != null)
             {
                 storyBoard.Stop(this);
             }
-            if (current.ActualWidth > 480)
+            if (current.ActualWidth > TEXT_BLOCK_WIDTH)
             {
-                DoubleAnimationUsingKeyFrames transformAnimation =
-                     new DoubleAnimationUsingKeyFrames();
-                transformAnimation.Duration = TimeSpan.FromSeconds(30);
+                double animationLengsth = TEXT_BLOCK_WIDTH - current.ActualWidth;
+                int animationTime = (int)(-animationLengsth / ANIMATION_SPEED);
+                DoubleAnimationUsingKeyFrames transformAnimation = new DoubleAnimationUsingKeyFrames();
+                transformAnimation.Duration = TimeSpan.FromSeconds(2 * ANIMATION_BASE_TIME + animationTime);
                 transformAnimation.KeyFrames.Add(
-                    new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(10))));
+                    new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(ANIMATION_BASE_TIME))));
                 transformAnimation.KeyFrames.Add(
-                    new LinearDoubleKeyFrame(480 - current.ActualWidth, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(20))));
+                    new LinearDoubleKeyFrame(animationLengsth, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(ANIMATION_BASE_TIME + animationTime))));
                 transformAnimation.KeyFrames.Add(
-                    new LinearDoubleKeyFrame(480 - current.ActualWidth, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(30))));
+                    new LinearDoubleKeyFrame(animationLengsth, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(2 * ANIMATION_BASE_TIME + animationTime))));
 
                 Storyboard.SetTarget(transformAnimation, current);
                 Storyboard.SetTargetProperty(transformAnimation, new PropertyPath(Canvas.LeftProperty));
