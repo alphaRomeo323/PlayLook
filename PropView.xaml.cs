@@ -17,7 +17,7 @@ namespace PlayLook
 
         private const double TEXT_BLOCK_WIDTH = 480; // テキストブロックの幅(px)
         private const int ANIMATION_BASE_TIME = 7; // アニメーションの基本時間(s)
-        private const int ANIMATION_SPEED = 40; // アニメーション速度(px/s)
+        private const double ANIMATION_SPEED = 40; // アニメーション速度(px/s)
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -70,13 +70,16 @@ namespace PlayLook
             if (storyBoard != null)
             {
                 storyBoard.Stop(this);
+                storyBoard.Children.Clear();
             }
             if (current.ActualWidth > TEXT_BLOCK_WIDTH)
             {
                 double animationLengsth = TEXT_BLOCK_WIDTH - current.ActualWidth;
-                int animationTime = (int)(-animationLengsth / ANIMATION_SPEED);
+                int animationTime = (int)Math.Ceiling(-animationLengsth / ANIMATION_SPEED);
                 DoubleAnimationUsingKeyFrames transformAnimation = new DoubleAnimationUsingKeyFrames();
                 transformAnimation.Duration = TimeSpan.FromSeconds(2 * ANIMATION_BASE_TIME + animationTime);
+                transformAnimation.KeyFrames.Add(
+                    new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))));
                 transformAnimation.KeyFrames.Add(
                     new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(ANIMATION_BASE_TIME))));
                 transformAnimation.KeyFrames.Add(
