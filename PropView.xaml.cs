@@ -13,11 +13,11 @@ namespace PlayLook
     {
         private SMTCSessionManager sessionManager; // SMTCセッションを管理するクラス
         private HTTPSessionManager httpSessionManager; // HTTPセッションを管理するクラス
-        private Storyboard storyBoard; // アニメーションを管理するクラス
+        private Storyboard? storyBoard; // アニメーションを管理するクラス
 
         private const double TEXT_BLOCK_WIDTH = 480; // テキストブロックの幅(px)
-        private const int ANIMATION_BASE_TIME = 10; // アニメーションの基本時間(s)
-        private const int ANIMATION_SPEED = 20; // アニメーション速度(px/s)
+        private const int ANIMATION_BASE_TIME = 7; // アニメーションの基本時間(s)
+        private const int ANIMATION_SPEED = 40; // アニメーション速度(px/s)
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -66,7 +66,7 @@ namespace PlayLook
         /// <param name="args"></param>
         private async void TargetUpdatedHandler(object sender, DataTransferEventArgs args)
         {
-            await Task.Delay(200);
+            await Task.Delay(100);
             if (storyBoard != null)
             {
                 storyBoard.Stop(this);

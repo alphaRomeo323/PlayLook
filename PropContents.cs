@@ -28,7 +28,7 @@ namespace PlayLook
             Status = new ReactiveProperty<GlobalSystemMediaTransportControlsSessionPlaybackStatus>(GlobalSystemMediaTransportControlsSessionPlaybackStatus.Closed);
             Current = new ReactiveProperty<string>("No media playing");
             Icon = new ReactiveProperty<string>("VolumeOff");
-            Current = Title.CombineLatest(Artist, Album, Status, GenerateCurrentStatus).ToReactiveProperty();
+            Current = Title.CombineLatest(Artist, Album, Status, GenerateCurrentStatus).ToReactiveProperty<string>();
         }
 
         /// <summary>

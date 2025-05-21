@@ -8,7 +8,7 @@ namespace PlayLook
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private PropView prop;
+        private PropView? prop;
         private SettingWindow? wnd;
         /// <summary>
         /// アプリケーションのエントリポイント。
@@ -69,11 +69,11 @@ namespace PlayLook
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void NotifyIcon_Click(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void NotifyIcon_Click(object? sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                prop.Show();
+                prop?.Show();
             }
         }
 
@@ -82,11 +82,14 @@ namespace PlayLook
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Exit_Click(object sender, EventArgs e)
+        private void Exit_Click(object? sender, EventArgs e)
         {
-            Settings.Default.WindowLeft = prop.Left;
-            Settings.Default.WindowTop = prop.Top;
-            Settings.Default.Save();
+            if (prop != null)
+            {
+                Settings.Default.WindowLeft = prop.Left;
+                Settings.Default.WindowTop = prop.Top;
+                Settings.Default.Save();
+            }
             Shutdown();
         }
 
@@ -95,7 +98,7 @@ namespace PlayLook
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Main_Click(object sender, EventArgs e)
+        private void Main_Click(object? sender, EventArgs e)
         {
             if (wnd == null)
             {
